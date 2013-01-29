@@ -2,6 +2,13 @@ import praw
 import database as db
 from datamodel import *
 import re
+import urlparse as up
+from urllib2 import Request, urlopen
+try:
+    from BeautifulSoup import BeautifulSoup
+except:
+    from bs4 import BeautifulSoup
+
 
 from sqlalchemy.orm.exc import FlushError
 from sqlalchemy.exc import IntegrityError
@@ -186,6 +193,7 @@ class Bot(object):
         
         pass
 
+# Retire this function in favor of get_video_links_from_html(text)
 def parse_links(comment):
     """
     Strips video links from the body of a praw.Comment object.
@@ -211,7 +219,36 @@ def parse_links(comment):
             yt_links.append('[%s](%s)' % (txt, url))
     return yt_links
 
-   
+def get_video_links_from_html(text):
+    """
+    Strips video link from a string in html format
+    by looking for the href attribute.
+    """
+    link_pat   = re.compile('href="(.*?)"')
+    #pat_domain = re.compile('http://([^/]*?)/')
+    #links
+    links = link_pat.findall(text)
+    yt_links = []
+    for l in links:
+        parsed = up.urlparse(l)
+        #parsed.netloc.lower() #not really necessary
+        for elem in parsed.netloc.split('.'):
+            if elem in ('youtube','youtu','ytimg'):
+                yt_links.append(l)
+                break
+    return yt_links
+
+def get_title(url):
+    """
+    returns the title of a webpage given a url
+    (e.g. the title of a youtube video)
+    """
+    request  = Request(url)
+    response = urlopen(request)
+    data     = response.read()
+    soup = BeautifulSoup(data)
+    return soup.title.string
+
 if __name__ == '__main__':
     yt_bot = Bot()
     yt_bot.login()        

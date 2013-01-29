@@ -1,6 +1,6 @@
 from database import *
 from sqlalchemy import Table, Column, Boolean, Float, Integer, String, Unicode, DateTime, ForeignKey
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relation, backref
 import time
 
 class Submission(Base):
@@ -12,8 +12,8 @@ class Submission(Base):
     title        = Column(String)
     created_utc  = Column(Integer)
     last_scraped = Column(Integer)
-    comments = relationship("Comment") # If this isn't necessary, we don't need it. ADding it for now just in case
-    bot_comment  = relationship("BotComment") # This one is a little more useful, but still shouldn't really be necessary
+    comments = relation("Comment") # If this isn't necessary, we don't need it. ADding it for now just in case
+    bot_comment  = relation("BotComment") # This one is a little more useful, but still shouldn't really be necessary
     
     def __init__(self,post):
         self.id           = post.id
