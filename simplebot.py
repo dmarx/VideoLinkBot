@@ -45,11 +45,14 @@ def get_title(url):
     returns the title of a webpage given a url
     (e.g. the title of a youtube video)
     """
-    request  = Request(url)
-    response = urlopen(request)
-    data     = response.read()
-    soup = BeautifulSoup(data)
-    title = soup.title.string[:-10] # strip out " - YouTube"
+    try:
+        request  = Request(url)
+        response = urlopen(request)
+        data     = response.read()
+        soup = BeautifulSoup(data)
+        title = soup.title.string[:-10] # strip out " - YouTube"
+    except:
+        return None # youtube.googleapis.com breaks BeautifulSoup
     # Need to strip out pipes since they muck up the reddit formatting.
     return title.replace('|','')
 
@@ -60,49 +63,6 @@ def sentence_tokenizer(text):
     """
     # need to figure out good way to tokenize sentences that retains links.
     pass
-        
-# What I'd like to do is     
-def parse_comment_html_for_links(html):
-    """
-    Takes a text in the form of praw.Comment.body_html, returns a list of sentences that contain
-    youtube links (for context), the correspinding links, and the 
-    video titles corresponding to the links.
-    
-    Actually, no it doesn't. That's what it should do. For now, just
-    returns links and their corresponding video titles.
-    """
-    links = get_video_links_from_html(html)
-    pairs = []
-    for link in links:
-        try:
-            pairs.append( (get_title(link), link) )
-        except:
-            continue        
-    return pairs
-    
-def build_comment_text(comment_dict, formatstr='|[{author}]({permalink}) | [{title}]({url})|'):
-    """
-    Returns the apporpriate text to relate the links in a particular comment.
-    Given a comment containing several links, each link will be represented
-    on a separate row in accordance to the provided formatstr. 
-    
-    Default format is a reddit table with two columns: left column is a link 
-    to the comment titled by its author, the right column is a link to the 
-    video titled by the video's title.
-    
-    @comment:   a praw.Comment object
-    @formatstr: desired output format. Currently supports:
-        @author:    comment author,
-        @permalink: comment permalink
-        @title:     video title
-        @url:       video url
-    """
-    #links = parse_comment_html_for_links(comment.body_html)
-    _title, _url = 0,1
-    return "\n".join([formatstr.format(author=comment.author.name
-                            ,title=link[_title]
-                            ,url=link[_url]
-                            ,permalink=comment.permalink) for link in links])
 
 def scrape(submission):
     """
@@ -134,9 +94,6 @@ def scrape(submission):
             continue
     print "Found %d links" % len(collected_links)
     return collected_links
-    
-
-    return formatted_text
 
 def build_comment(collected_links):
     text = '''Here are the collected video links posted in response to this post (deduplicated to the best of my ability):
