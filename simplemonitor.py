@@ -38,7 +38,7 @@ while True:
             #if len( links )>0:
             for link in links:
                 try:
-                    print u'\n\n\nScraping "{sub}" found a link-comment by {auth} on "{post}"'.\
+                    print u'\nScraping "{sub}" found a link-comment by {auth} on "{post}"'.\
                         format(sub=c.subreddit.display_name
                               ,auth=c.author
                               ,post=c.submission.title)
@@ -51,7 +51,7 @@ while True:
                 print "Directing bot to scrape post for video links."
                 #s.add_memo_entry(comment, link) This feels like a good idea, but is sort of turning out to be a pain in the ass. We'll rescrape the one comment.
                 s.post_aggregate_links(c.submission.id)
-                print "\n\n\n"
+                print "\n" 
                 # That's it. I think we have a bot! With memos, even!
                 # Sort of weird how I use the bot as though it were a 
                 # class but it isn't really. Might not be the best idea

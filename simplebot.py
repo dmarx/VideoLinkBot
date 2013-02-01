@@ -92,61 +92,6 @@ def get_title(url):
             title = '...(trouble getting video title)...' # Passing in None makes the link completely inaccessible.
     return title
 
-# Would like to post context sentence along with link to comment and link to video.
-def sentence_tokenizer(text):
-    """
-    Very simple tokenizer.
-    """
-    # need to figure out good way to tokenize sentences that retains links.
-    pass
-        
-# What I'd like to do is     
-def parse_comment_html_for_links(html):
-    """
-    Takes a text in the form of praw.Comment.body_html, returns a list of sentences that contain
-    youtube links (for context), the correspinding links, and the 
-    video titles corresponding to the links.
-    
-    Actually, no it doesn't. That's what it should do. For now, just
-    returns links and their corresponding video titles.
-    """
-    links = get_video_links_from_html(html)
-    pairs = []
-    for link in links:
-        try:
-            pairs.append( (get_title(link), link) )
-        except:
-            continue        
-    return pairs
-    
-def build_comment_text(comment_dict, formatstr='|[{author}]({permalink}) | [{title}]({url})|'):
-    """
-    Returns the apporpriate text to relate the links in a particular comment.
-    Given a comment containing several links, each link will be represented
-    on a separate row in accordance to the provided formatstr. 
-    
-    Default format is a reddit table with two columns: left column is a link 
-    to the comment titled by its author, the right column is a link to the 
-    video titled by the video's title.
-    
-    @comment:   a praw.Comment object
-    @formatstr: desired output format. Currently supports:
-        @author:    comment author,
-        @permalink: comment permalink
-        @title:     video title
-        @url:       video url
-    """
-    #links = parse_comment_html_for_links(comment.body_html)
-    _title, _url = 0,1
-    try:
-        username = comment.author.name
-    except:
-        username = None
-    return u"\n".join([formatstr.format(author=username
-                            ,title=link[_title]
-                            ,url=link[_url]
-                            ,permalink=comment.permalink) for link in links])
-
 def scrape(submission):
     """
     Given a submission id, scrapes that submission and returns a list of comments
@@ -294,9 +239,9 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
         print "[NO POST] Submission has %d comments. Not worth scraping." % subm.num_comments
         return None
     try:
-        print u'Scraping "{}"'.format(subm.title)
+        print u'Scraping "{0}"'.format(subm.title)
     except:
-        print u'Scraping "{}"'.format(subm.id)
+        print u'Scraping "{0}"'.format(subm.id)
     links = scrape(subm) # Theoretically, we could just pull this down from the memo.    
     #if text[-5:] == '----|':
     #    print 'No links to post'    
