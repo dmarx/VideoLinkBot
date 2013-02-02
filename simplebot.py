@@ -192,13 +192,10 @@ def build_comment(collected_links, link_id=None):
     
     titles = []
     if link_id: # if we've been provided with a link_id, memoize the link titles.
-        for link in video_urls:
-            if not scrapedLinksMemo[link_id][link].has_key('title'):
-                title = get_title(url)
-                scrapedLinksMemo[link_id][link]['title'] = title
-            else:
-                title = scrapedLinksMemo[link_id][link]['title']
-            titles.append(title)
+        for url in video_urls:
+            if not scrapedLinksMemo[link_id][url].has_key('title'):
+                scrapedLinksMemo[link_id][url]['title'] = get_title(url)                
+            titles.append( scrapedLinksMemo[link_id][url]['title'] )
 
     # pass comments to formatter as a list of dicts
     for link in [ {'author':a, 'permalink':p, 'title':t, 'url':u} for a,p,t,u in zip(authors, permalinks, titles, video_urls)]:
