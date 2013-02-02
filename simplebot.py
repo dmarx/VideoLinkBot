@@ -1,20 +1,16 @@
 """
-Would be cool if posted links were sorted in order by score achieved by their parent comment.
---> would require some re-processing of already-scraped comments when updating a post.
+Reddit bot that scrapes a post for videoo links
+and posts the collection in a table as a comment.
 
-Also: should periodically keep tabs on the scores of posts submitted by the bot.
-Could then identify subreddits where the bot is clearly not appreciated and black list those 
-subreddits to ensure the bot doesn't post where it's not wanted. This would be a separate scraper.
+This script is designed for scraping a single post.
+Run as follows:
 
-Should consider blacklisting IAMA and AskReddit just cause they get sooooo many comments.
-Should also consider just not posting when a submission has already achieved a certain 
-threshhold number of comments and the link_id doesn't appear in botCommentsMemo.
+    import simplebot as s
+    s.login(_user=username, _pass=password)
+    post_aggregate_links(submisison_id)
 
-Need to implement some kind of house-keeping function to clear out old entries from the memos,
-otherwise they'll just needlessly leech RAM. botCommentsMemo we can leave alone, but should
-periodically flush old entries from the other two memos.
-
-If rescraping a post and no new links found, shouldn't edit comment.
+To run the bot as a continuous scrape of 
+/r/all/comments, use simplemonitor.py. 
 """
 
 import praw
@@ -196,7 +192,7 @@ def build_comment(collected_links, link_id=None):
     
     titles = []
     if link_id: # if we've been provided with a link_id, memoize the link titles.
-        for url in video_urls:
+        for link in video_urls:
             if not scrapedLinksMemo[link_id][link].has_key('title'):
                 title = get_title(url)
                 scrapedLinksMemo[link_id][link]['title'] = title

@@ -1,16 +1,12 @@
 """
-Monitors /r/all for comments containing video links.
-When one is encountered, sends the bot over to that 
-post to do its thang.
+Monitors /r/all for comments containing video links. When one is encountered, 
+sends the bot to that post to do its thang.
 
 Keeps track of comments we've already seen to make sure we don't double count.
 
-The code below treats the simplebot2 module as though it were a class instance
-which is probably bad form, but this certainly works fine. Should modify this 
-in the future to take command line args: e.g. a subreddit or multisub to focus
-on instead of /r/all, a different user-agent string, user/pass.... you know what?
-None of these additional features really even requires I refactor this as a class
-except the user-agent string, but really that shouldn't be modified anyway.
+The code below treats simplebot module as though it were a class instance
+which is probably bad practice, but it certainly works fine and the code seems
+pretty readable to me. 
 """
 import simplebot as s
 from collections import deque  
