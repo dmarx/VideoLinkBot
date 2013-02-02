@@ -183,7 +183,7 @@ def add_memo_entry(comment, link):
     else:
         scrapedLinksMemo[submission_id][link] = link_entry
 
-def build_comment(collected_links):
+def build_comment(collected_links, link_id=None):
     text = '''Here are the collected video links posted in response to this post (deduplicated to the best of my ability):
 
 |Source|Video Link|
@@ -192,8 +192,18 @@ def build_comment(collected_links):
     video_urls = [k for k in collected_links]
     authors = [collected_links[url]['author'] for url in video_urls]
     permalinks = [collected_links[url]['permalink'] for url in video_urls]
-    titles = [get_title(url) for url in video_urls]    
+    #titles = [get_title(url) for url in video_urls]    
     
+    titles = []
+    if link_id: # if we've been provided with a link_id, memoize the link titles.
+        for url in video_urls:
+            if not scrapedLinksMemo[link_id][link].has_key('title'):
+                title = get_title(url)
+                scrapedLinksMemo[link_id][link]['title'] = title
+            else:
+                title = scrapedLinksMemo[link_id][link]['title']
+            titles.append(title)
+
     # pass comments to formatter as a list of dicts
     for link in [ {'author':a, 'permalink':p, 'title':t, 'url':u} for a,p,t,u in zip(authors, permalinks, titles, video_urls)]:
         #formatted_text+='|[{author}]({permalink}) | [{title}]({url})|'.format(link)
@@ -267,7 +277,7 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
                     format(nlinks = n_links
                           ,sub    = subm.subreddit.id
                           ,post   = subm.id)
-            text = build_comment(links)
+            text = build_comment(links, subm.id)
             posted = False
             while not posted:
                 posted = post_comment(link_id, subm, text)
