@@ -75,8 +75,9 @@ def get_title(url):
         data     = response.read()
         soup = BeautifulSoup(data)
         title = soup.title.string[:-10] # strip out " - YouTube"
-        title = title.replace('|','')
-        title = title.replace('*','')
+        #title = title.replace('|','')
+        #title = title.replace('*','')
+        title = re.sub('[\|\*\[\]\(\)~]','',title)
         return title
     try:
         title = _get_title(url)
@@ -183,7 +184,7 @@ def add_memo_entry(comment, link):
 def build_comment(collected_links):
     text = '''Here are the collected video links posted in response to this post (deduplicated to the best of my ability):
 
-|Source Comment|Video Link|
+|Source|Video Link|
 |:-------|:-------|\n'''    
     
     video_urls = [k for k in collected_links]
@@ -194,8 +195,12 @@ def build_comment(collected_links):
     # pass comments to formatter as a list of dicts
     for link in [ {'author':a, 'permalink':p, 'title':t, 'url':u} for a,p,t,u in zip(authors, permalinks, titles, video_urls)]:
         #formatted_text+='|[{author}]({permalink}) | [{title}]({url})|'.format(link)
-        text+= u'| [%(author)s](%(permalink)s) | [%(title)s](%(url)s) |\n' % link        
-    text = trim_comment(text) # why not be proactive.
+        #text+= u'| [%(author)s](%(permalink)s) | [%(title)s](%(url)s) |\n' % link        
+        text += u'|/u/{author} | [{title}]({url})|\n'.format( **link )
+        
+    text = trim_comment(text, 10000-120)
+    text+="""\n* [VideoLinkBot FAQ](http://www.reddit.com/r/VideoLinkBot/wiki/faq)
+* [Feedback](http://www.reddit.com/r/VideoLinkBot/submit)"""
     return text
 
     
@@ -208,6 +213,7 @@ def post_comment(link_id, subm, text):
             bot_comment = subm.add_comment(text)
             botCommentsMemo[link_id] = bot_comment
         result = True
+        print bot_comment.id
     except APIException, e:
         # need to handle comments that are too long. 
         # Really, this should probably be in build_comment()
@@ -232,7 +238,7 @@ def trim_comment(text, targetsize=10000):
     print "Processed comment length:",len(text)
     return text
     
-def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comments = 8):   
+def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comments = 8, min_num_links=5):   
     """Not sure which function to call? You probably want this one."""    
     subm = r.get_submission(submission_id = link_id)      
     if not min_num_comments < subm.num_comments < max_num_comments:
@@ -246,7 +252,7 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
     #if text[-5:] == '----|':
     #    print 'No links to post'    
     n_links = len(links)
-    if  n_links >2:
+    if  n_links > min_num_links:
         authors = set([links[url]['author'] for url in links])
         if len(authors) >1:
             try:
@@ -267,7 +273,7 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
         else:
             print "[NO POST] All links from same user. Need at least 2 different users to post."
     else: 
-        print "[NO POST] Only found %d links. Need 3 to post." % n_links
+        print "[NO POST] Only found %d links. Need %d to post." % n_links, min_num_links
 
 if __name__ == '__main__':
     login()

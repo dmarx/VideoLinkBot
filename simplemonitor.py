@@ -50,12 +50,10 @@ while True:
                               ,post=c.submission.id)
                 print "Directing bot to scrape post for video links."
                 #s.add_memo_entry(comment, link) This feels like a good idea, but is sort of turning out to be a pain in the ass. We'll rescrape the one comment.
-                s.post_aggregate_links(c.submission.id)
-                print "\n" 
-                # That's it. I think we have a bot! With memos, even!
-                # Sort of weird how I use the bot as though it were a 
-                # class but it isn't really. Might not be the best idea
-                # but whatever.
+                try:
+                    s.post_aggregate_links(c.submission.id)
+                except:
+                    continue #handle any arbitrary errors.
             #print n, len(memo)
             if n%100 == 0:
-                print n
+                print n, len(s.botCommentsMemo)
