@@ -122,8 +122,8 @@ def scrape(submission):
         scrapedCommentsMemo[submission.id] = scrapedCommentIDs 
     print "got %d comments" % len(submission.all_comments_flat)
     for i, comment in enumerate(submission.all_comments_flat):
-        if i%10 == 0:
-            print "Scraped %d comments." % i
+        #if i%10 == 0:
+        #    print "Scraped %d comments." % i
         if comment.id in scrapedCommentIDs:
             continue
         try:
