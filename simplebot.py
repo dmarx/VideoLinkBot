@@ -69,6 +69,7 @@ def get_title(url):
     returns the title of a webpage given a url
     (e.g. the title of a youtube video)
     """
+    default = '...?...'
     def _get_title(_url):
         request  = Request(_url)
         response = urlopen(request)
@@ -82,15 +83,16 @@ def get_title(url):
     try:
         title = _get_title(url)
     except Exception, e:
-        # I think youtube might be blocking me here. Let's try slowing it down.
         print "Encountered some error getting title for video at", url
         print e
-        time.sleep(2) # hopefully this isn't too massive of a slowdown. we'll enouncter this exception everytime we hit youtube.googleapis.com
+        time.sleep(2)
         try:
             title = _get_title(url)
         except:
-            print 'OK then, let''s just call it "..."'
-            title = '...(trouble getting video title)...' # Passing in None makes the link completely inaccessible.
+            print 'OK then, let''s just call it "%s"' % default
+            title = default
+        if title is None:
+            title = default
     return title
 
 def scrape(submission):
@@ -252,7 +254,7 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
     #if text[-5:] == '----|':
     #    print 'No links to post'    
     n_links = len(links)
-    if  n_links > min_num_links:
+    if  n_links >= min_num_links:
         authors = set([links[url]['author'] for url in links])
         if len(authors) >1:
             try:
