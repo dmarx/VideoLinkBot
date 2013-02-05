@@ -72,8 +72,6 @@ def get_title(url):
         data     = response.read()
         soup = BeautifulSoup(data)
         title = soup.title.string[:-10] # strip out " - YouTube"
-        #title = title.replace('|','')
-        #title = title.replace('*','')
         title = re.sub('[\|\*\[\]\(\)~]','',title)
         return title
     try:
@@ -167,7 +165,11 @@ def add_memo_entry(comment, link):
         username = comment.author.name
     except:
         username = None
-    link_entry = {'author':username, 'created_utc':comment.created_utc, 'permalink':comment.permalink, 'id':comment.id}
+    link_entry = {'author':username
+                 ,'created_utc':comment.created_utc
+                 #,'permalink':comment.permalink
+                 ,'permalink':comment_shortlink(comment)
+                 , 'id':comment.id}
     if scrapedLinksMemo.has_key(submission_id):
         collected_links = scrapedLinksMemo[submission_id]        
         try:
@@ -179,16 +181,22 @@ def add_memo_entry(comment, link):
     else:
         scrapedLinksMemo[submission_id][link] = link_entry
 
+def comment_shortlink(c):
+    return 'http://reddit.com/comments/'+ c.link_id[3:] + '/_/' + c.id 
+
 def build_comment(collected_links, link_id=None):
-    text = '''Here are the collected video links posted in response to this post (deduplicated to the best of my ability):
+    head = '''Here are the collected video links posted in response to this post (deduplicated to the best of my ability):
 
 |Source|Video Link|
 |:-------|:-------|\n'''    
     
+    tail ="""\n* [VideoLinkBot FAQ](http://www.reddit.com/r/VideoLinkBot/wiki/faq)
+* [Feedback](http://www.reddit.com/r/VideoLinkBot/submit)"""
+    
     video_urls = [k for k in collected_links]
     authors = [collected_links[url]['author'] for url in video_urls]
-    permalinks = [collected_links[url]['permalink'] for url in video_urls]
-    #titles = [get_title(url) for url in video_urls]    
+    permalinks = [collected_links[url]['permalink'] for url in video_urls]    
+    #permalinks = [comment_shortlink( collected_links[url]['permalink'] ) for url in video_urls]
     
     titles = []
     if link_id: # if we've been provided with a link_id, memoize the link titles.
@@ -196,18 +204,16 @@ def build_comment(collected_links, link_id=None):
             if not scrapedLinksMemo[link_id][url].has_key('title'):
                 scrapedLinksMemo[link_id][url]['title'] = get_title(url)                
             titles.append( scrapedLinksMemo[link_id][url]['title'] )
-
+    
+    text=u''
     # pass comments to formatter as a list of dicts
     for link in [ {'author':a, 'permalink':p, 'title':t, 'url':u} for a,p,t,u in zip(authors, permalinks, titles, video_urls)]:
-        #formatted_text+='|[{author}]({permalink}) | [{title}]({url})|'.format(link)
-        #text+= u'| [%(author)s](%(permalink)s) | [%(title)s](%(url)s) |\n' % link        
-        text += u'|/u/{author} | [{title}]({url})|\n'.format( **link )
-        
-    text = trim_comment(text, 10000-120)
-    text+="""\n* [VideoLinkBot FAQ](http://www.reddit.com/r/VideoLinkBot/wiki/faq)
-* [Feedback](http://www.reddit.com/r/VideoLinkBot/submit)"""
-    return text
+        #text += u'|/u/{author} | [{title}]({url})|\n'.format( **link )
+        text += u'|[{author}]({permalink})|[{title}]({url})|\n'.format( **link )
 
+    text = trim_comment(text, 10000-len(head)-len(tail))    
+    
+    return head+text+tail
     
 def post_comment(link_id, subm, text):
     try:
@@ -278,7 +284,7 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
         else:
             print "[NO POST] All links from same user. Need at least 2 different users to post."
     else: 
-        print "[NO POST] Only found %d links. Need %d to post." % n_links, min_num_links
+        print "[NO POST] Only found %d links. Need %d to post." % (n_links, min_num_links)
 
 if __name__ == '__main__':
     login()
