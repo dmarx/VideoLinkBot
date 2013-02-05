@@ -187,7 +187,7 @@ def comment_shortlink(c):
 def build_comment(collected_links, link_id=None):
     head = '''Here are the collected video links posted in response to this post (deduplicated to the best of my ability):
 
-|Source|Video Link|
+|Source Comment|Video Link|
 |:-------|:-------|\n'''    
     
     tail ="""\n* [VideoLinkBot FAQ](http://www.reddit.com/r/VideoLinkBot/wiki/faq)
