@@ -185,7 +185,7 @@ def comment_shortlink(c):
     return 'http://reddit.com/comments/'+ c.link_id[3:] + '/_/' + c.id 
 
 def build_comment(collected_links, link_id=None):
-    head = '''Here are the collected video links posted in response to this post (deduplicated to the best of my ability):
+    head = '''Here is a list of video links that redditors have posted in response to this submission (deduplicated to the best of my ability):
 
 |Source Comment|Video Link|
 |:-------|:-------|\n'''    
