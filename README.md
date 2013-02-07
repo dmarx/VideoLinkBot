@@ -6,11 +6,11 @@ See the bot in action at: http://www.reddit.com/user/videolinkbot
 
 A POLITE REQUEST
 ------------------
-Although I have licesned this code with a very permissive license, please
+Although I have licensed this code with a very permissive license, please
 don't create a bot on reddit.com that serves the same function or nearly 
 the same function as /u/VideoLinkBot. When I get tired of operating this bot
 I will add a text file to that effect to this repository and will also post an
-announcement retiring the bot ro http://www.reddit.com/r/VideoLinkBot. Until then,
+announcement retiring the bot to http://www.reddit.com/r/VideoLinkBot. Until then,
 one link-aggregating bot should be more than enough. 
 
 
@@ -39,5 +39,8 @@ simplemonitor.py
 This script is what according to most people makes this tool a proper "bot." Simplemonitor
 keeps tabs on /r/all/comments looking for newly posted comments containing links to videos.
 When simplemonitor finds such a comment, it directs simplebot to post_aggregate_links() for 
-the submission that comment was posted in response to. As long as loginCredentials.txt exists,
-you should be able to just run simplemonitor.py
+the submission that comment was posted in response to. 
+
+As long as loginCredentials.txt exists, you should be able to just run:
+
+        $ python simplemonitor.py
