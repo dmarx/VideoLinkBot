@@ -210,8 +210,9 @@ def build_comment(collected_links, link_id=None):
     for link in [ {'author':a, 'permalink':p, 'title':t, 'url':u} for a,p,t,u in zip(authors, permalinks, titles, video_urls)]:
         #text += u'|/u/{author} | [{title}]({url})|\n'.format( **link )
         text += u'|[{author}]({permalink})|[{title}]({url})|\n'.format( **link )
-
-    text = trim_comment(text, 10000-len(head)-len(tail))    
+    
+    len_playlist = 82 # I think...
+    text = trim_comment(text, 10000-len(head)-len(tail)-len_playlist)    
     
     return head+text+tail
     
@@ -248,6 +249,15 @@ def trim_comment(text, targetsize=10000):
         text = '\n'.join(text.split('\n')[:-1])#[2:]
     print "Processed comment length:",len(text)
     return text
+
+def add_playlist(c):
+    """
+    Adds a radd.it playlist to an existing comment.
+    """
+    playlist = "http://radd.it/comments/{0}/_/{1}".format(c.link_id[3:], c.id)
+    text = c.body + "\n* [Playlist of videos in this comment]({0})".format(playlist)
+    c.edit(text)
+    
     
 def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comments = 8, min_num_links=5):   
     """Not sure which function to call? You probably want this one."""    
@@ -277,9 +287,12 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
                           ,sub    = subm.subreddit.id
                           ,post   = subm.id)
             text = build_comment(links, subm.id)
+            print "comment built, trying to post."
             posted = False
             while not posted:
                 posted = post_comment(link_id, subm, text)
+            print "Appending playlist..."
+            add_playlist(botCommentsMemo[link_id])
             print "Video links successfully posted."
         else:
             print "[NO POST] All links from same user. Need at least 2 different users to post."
