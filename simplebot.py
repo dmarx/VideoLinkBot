@@ -19,6 +19,7 @@ import re
 import urlparse as up
 from urllib2 import Request, urlopen
 import time
+import pandas as pd
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -68,11 +69,15 @@ def get_title(url):
     default = '...?...'
     def _get_title(_url):
         request  = Request(_url)
+        print "openning video url"
         response = urlopen(request)
+        print "reading response"
         data     = response.read()
+        print "souping response"
         soup = BeautifulSoup(data)
         title = soup.title.string[:-10] # strip out " - YouTube"
         title = re.sub('[\|\*\[\]\(\)~]','',title)
+        print "extracted title"
         return title
     try:
         title = _get_title(url)
@@ -110,9 +115,9 @@ def scrape(submission):
         print "We have already collected %d video links on this submission." % len(collected_links)
     else:
         print "This post has not been scraped (recently)."
-        collected_links   = {}
+        #collected_links   = {}
         scrapedCommentIDs = set()
-        scrapedLinksMemo[submission.id]    = collected_links
+        #scrapedLinksMemo[submission.id]    = collected_links
         scrapedCommentsMemo[submission.id] = scrapedCommentIDs 
     print "got %d comments" % len(submission.all_comments_flat)
     for i, comment in enumerate(submission.all_comments_flat):
@@ -140,6 +145,7 @@ def scrape(submission):
             print e
             continue # why do name attribute errors keep getting re-raised???
         scrapedCommentIDs.add(comment.id)
+    collected_links = scrapedLinksMemo[submission.id]
     print "Scraped {0} comments, found {1} links".format(i, len(collected_links) )
     return collected_links  # this isn't really even necessary since we could just call it down from the memo.
 
@@ -147,8 +153,8 @@ def get_scraped_comments(link_id):
     """ to be retired in favor of call to memo"""
     print "building comments memo"
     if scrapedLinksMemo.has_key(link_id):
-        collected_links = scrapedCommentsMemo[link_id]
-        scraped = set( [collected_links[url]['id'] for url in collected_links] )
+        collected_comments = scrapedCommentsMemo[link_id]
+        scraped = set( [collected_comments[url]['id'] for url in collected_comments] )
     else:
         "Populating scrapedCommentsMemo with", link_id
         scraped = set()
@@ -167,53 +173,74 @@ def add_memo_entry(comment, link):
         username = None
     link_entry = {'author':username
                  ,'created_utc':comment.created_utc
-                 #,'permalink':comment.permalink
                  ,'permalink':comment_shortlink(comment)
-                 , 'id':comment.id}
+                 , 'id':comment.id
+                 ,'score':comment.score
+                 ,'title':None # This is lazy
+                 }
     if scrapedLinksMemo.has_key(submission_id):
         collected_links = scrapedLinksMemo[submission_id]        
         try:
-            if collected_links[link]['created_utc'] < comment.created_utc:
-                collected_links[link] = link_entry                            
-        except KeyError:
-            collected_links[link] = link_entry
-            #scrapedCommentIDs.append(scrapedCommentIDs) # would probably be easier to just just use a set   
+            if collected_links.ix[link, 'score'] < comment.score:
+                collected_links.ix[link, :] = link_entry                            
+        except KeyError, e:
+            new_rec = pd.DataFrame(link_entry, index=[link])
+            collected_links = collected_links.append(new_rec)
+            scrapedLinksMemo[submission_id] = collected_links
     else:
-        scrapedLinksMemo[submission_id][link] = link_entry
+        scrapedLinksMemo[submission_id] = pd.DataFrame(link_entry, index=[link])
 
 def comment_shortlink(c):
     return 'http://reddit.com/comments/'+ c.link_id[3:] + '/_/' + c.id 
 
 def build_comment(collected_links, link_id=None):
+    print "Building comment"
     head = '''Here is a list of video links that redditors have posted in response to this submission (deduplicated to the best of my ability):
 
-|Source Comment|Video Link|
-|:-------|:-------|\n'''    
+|Source Comment|Score|Video Link|
+|:-------|:-------|:-------|\n'''    
     
     tail ="""\n* [VideoLinkBot FAQ](http://www.reddit.com/r/VideoLinkBot/wiki/faq)
 * [Feedback](http://www.reddit.com/r/VideoLinkBot/submit)"""
     
-    video_urls = [k for k in collected_links]
-    authors = [collected_links[url]['author'] for url in video_urls]
-    permalinks = [collected_links[url]['permalink'] for url in video_urls]    
-    #permalinks = [comment_shortlink( collected_links[url]['permalink'] ) for url in video_urls]
+    #video_urls = [k for k in collected_links]
+    #authors = [collected_links[url]['author'] for url in video_urls]
+    #permalinks = [collected_links[url]['permalink'] for url in video_urls]    
     
     titles = []
+    print "Getting video titles"
     if link_id: # if we've been provided with a link_id, memoize the link titles.
-        for url in video_urls:
-            if not scrapedLinksMemo[link_id][url].has_key('title'):
-                scrapedLinksMemo[link_id][url]['title'] = get_title(url)                
-            titles.append( scrapedLinksMemo[link_id][url]['title'] )
-    
+        #for url in video_urls:
+        for url in collected_links.index:
+            print url
+            try:
+                #if not scrapedLinksMemo[link_id][url].has_key('title'):
+                if not scrapedLinksMemo[link_id].ix[url,'title']:
+                    print "getting video title for", url
+                    scrapedLinksMemo[link_id].ix[url,'title'] = get_title(url)
+                    print "got title for",url                
+                #titles.append( scrapedLinksMemo[link_id][url]['title'] )
+            except Exception, e:
+                print "some problem getting title for", url
+                print e
+                continue
+                
+    print "Got video titles. Formatting text for each link."
     text=u''
-    # pass comments to formatter as a list of dicts
-    for link in [ {'author':a, 'permalink':p, 'title':t, 'url':u} for a,p,t,u in zip(authors, permalinks, titles, video_urls)]:
-        #text += u'|/u/{author} | [{title}]({url})|\n'.format( **link )
-        text += u'|[{author}]({permalink})|[{title}]({url})|\n'.format( **link )
+    for _url, c in scrapedLinksMemo[link_id].sort(columns='score',ascending=False).iterrows():
+        text += u'|[{author}]({permalink})|{score}|[{title}]({url})|\n'.format(
+                 author=c['author']
+                 ,permalink = c['permalink']
+                 ,title = c['title']
+                 ,url = _url
+                 ,score= c['score']
+                 )
+    
     
     len_playlist = 82 # I think...
+    print "Trimming content as needed"
     text = trim_comment(text, 10000-len(head)-len(tail)-len_playlist)    
-    
+    print "Comment built."
     return head+text+tail
     
 def post_comment(link_id, subm, text):
@@ -274,7 +301,8 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
     #    print 'No links to post'    
     n_links = len(links)
     if  n_links >= min_num_links:
-        authors = set([links[url]['author'] for url in links])
+        #authors = set([links[url]['author'] for url in links])
+        authors = links.author
         if len(authors) >1:
             try:
                 print u'[POST] Posting {nlinks} links to "{sub}" post "{post}"'.\
