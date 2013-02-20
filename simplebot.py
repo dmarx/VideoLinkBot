@@ -138,15 +138,13 @@ def scrape(submission):
             else:
                 links = get_video_links_from_html(comment.body_html)
                 for link in links:
-                    print "memoizing link"
                     add_memo_entry(comment, link)
-                    print "memoed"
         except Exception, e:
             # ignore deleted comments and comments by deleted users.
             print "encountered some error in scrape()"
             print e
             continue # why do name attribute errors keep getting re-raised???
-        ##scrapedCommentIDs.add(comment.id)
+        scrapedCommentIDs.add(comment.id)
     collected_links = scrapedLinksMemo[submission.id]
     print "Scraped {0} comments, found {1} links".format(i, len(collected_links) )
     return collected_links  # this isn't really even necessary since we could just call it down from the memo.
@@ -175,7 +173,6 @@ def add_memo_entry(comment, link):
         username = None
     link_entry = {'author':username
                  ,'created_utc':comment.created_utc
-                 #,'permalink':comment.permalink
                  ,'permalink':comment_shortlink(comment)
                  , 'id':comment.id
                  ,'score':comment.score
@@ -184,27 +181,14 @@ def add_memo_entry(comment, link):
     if scrapedLinksMemo.has_key(submission_id):
         collected_links = scrapedLinksMemo[submission_id]        
         try:
-            #if collected_links[link]['created_utc'] < comment.created_utc:
             if collected_links.ix[link, 'score'] < comment.score:
                 collected_links.ix[link, :] = link_entry                            
         except KeyError, e:
-            #collected_links[link] = link_entry
-            print e, "in add_memo_entry"
-            #collected_links.ix[link, :] = link_entry # This isn't working
-            #collected_links.append(pd.DataFrame(link_entry, index=[link]) )
             new_rec = pd.DataFrame(link_entry, index=[link])
-            print "built new record"
-            print new_rec            
-            #collected_links =pd.concat(collected_links, new_rec)            
             collected_links = collected_links.append(new_rec)
-            print "added link_entry"
-            print len(collected_links)
             scrapedLinksMemo[submission_id] = collected_links
-            #scrapedCommentIDs.append(scrapedCommentIDs) # would probably be easier to just just use a set   
     else:
-        #scrapedLinksMemo[submission_id][link] = link_entry
         scrapedLinksMemo[submission_id] = pd.DataFrame(link_entry, index=[link])
-        print "seeded new df in memo."
 
 def comment_shortlink(c):
     return 'http://reddit.com/comments/'+ c.link_id[3:] + '/_/' + c.id 
@@ -243,16 +227,13 @@ def build_comment(collected_links, link_id=None):
                 
     print "Got video titles. Formatting text for each link."
     text=u''
-    # pass comments to formatter as a list of dicts
-    #for link in [ {'author':a, 'permalink':p, 'title':t, 'url':u} for a,p,t,u in zip(authors, permalinks, titles, video_urls)]:
-        #text += u'|[{author}]({permalink})|[{title}]({url})|\n'.format( **link )
     for _url, c in scrapedLinksMemo[link_id].sort(columns='score',ascending=False).iterrows():
         text += u'|[{author}]({permalink})|{score}|[{title}]({url})|\n'.format(
-                 author=c['author'] #c.author
-                 ,permalink = c['permalink'] #c.permalink
-                 ,title = c['title'] #c.title
+                 author=c['author']
+                 ,permalink = c['permalink']
+                 ,title = c['title']
                  ,url = _url
-                 ,score= c['score'] #c.score
+                 ,score= c['score']
                  )
     
     
