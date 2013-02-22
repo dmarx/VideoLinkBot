@@ -61,12 +61,12 @@ def get_video_links_from_html(text):
                 break
     return yt_links
 
-def get_title(url):
+def get_title(url, default = None):
     """
     returns the title of a webpage given a url
     (e.g. the title of a youtube video)
     """
-    default = '...?...'
+    #default = '...?...'    
     def _get_title(_url):
         request  = Request(_url)
         print "openning video url"
@@ -228,6 +228,11 @@ def build_comment(collected_links, link_id=None):
     print "Got video titles. Formatting text for each link."
     text=u''
     for _url, c in scrapedLinksMemo[link_id].sort(columns='score',ascending=False).iterrows():
+        if c['title']:
+            _title = c['title']
+        else:
+            _title = _url
+    
         text += u'|[{author}]({permalink})|{score}|[{title}]({url})|\n'.format(
                  author=c['author']
                  ,permalink = c['permalink']
