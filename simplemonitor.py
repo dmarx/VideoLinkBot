@@ -27,7 +27,10 @@ while True:
         else:
             n+=1
             memo.append(c.id)
-            if c.author.name == s.r.user.name: # skip our own comments.
+            try:
+                if c.author.name == s.r.user.name: # skip our own comments.
+                    continue
+            except:
                 continue
             sub = c.subreddit.display_name
             links = s.get_video_links_from_html(c.body_html)
