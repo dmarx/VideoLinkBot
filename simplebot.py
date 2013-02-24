@@ -123,8 +123,8 @@ def scrape(submission):
     for i, comment in enumerate(submission.all_comments_flat):
         #if i%10 == 0:
         #    print "Scraped %d comments." % i
-        if comment.id in scrapedCommentIDs:
-            continue
+        #if comment.id in scrapedCommentIDs:
+        #    continue
         try:
             if comment.author.name == r.user.name: # deleted comment handling doesn't seem to be working properly.
                 # if we have already memoized a bot comment for this post, continue
