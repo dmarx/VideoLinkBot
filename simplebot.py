@@ -182,7 +182,10 @@ def add_memo_entry(comment, link):
         collected_links = scrapedLinksMemo[submission_id]        
         try:
             if collected_links.ix[link, 'score'] < comment.score:
-                collected_links.ix[link, :] = link_entry                            
+               # collected_links.ix[link, :] = link_entry ### I think this is causing the bug in issue # 25
+               # This is a shitty fix, but it should solve the problem.
+               for k in link_entry.keys():
+                   collected_links.ix[link, k] = link_entry[k]
         except KeyError, e:
             new_rec = pd.DataFrame(link_entry, index=[link])
             collected_links = collected_links.append(new_rec)
