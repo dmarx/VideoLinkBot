@@ -74,7 +74,7 @@ def get_title(url, default = None):
         print "reading response"
         data     = response.read()
         print "souping response"
-        soup = BeautifulSoup(data)
+        soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
         title = soup.title.string[:-10] # strip out " - YouTube"
         title = re.sub('[\|\*\[\]\(\)~]','',title)
         print "extracted title"
