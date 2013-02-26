@@ -310,7 +310,7 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
     n_links = len(links)
     if  n_links >= min_num_links:
         #authors = set([links[url]['author'] for url in links])
-        authors = links.author
+        authors = links.author.unique
         if len(authors) >1:
             try:
                 print u'[POST] Posting {nlinks} links to "{sub}" post "{post}"'.\
