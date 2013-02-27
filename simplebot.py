@@ -198,7 +198,7 @@ def comment_shortlink(c):
 
 def build_comment(collected_links, link_id=None):
     print "Building comment"
-    head = '''Here is a list of video links that redditors have posted in response to this submission (deduplicated to the best of my ability):
+    head = '''Here is a list of video links collected from comments that redditors have made in response to this submission:
 
 |Source Comment|Score|Video Link|
 |:-------|:-------|:-------|\n'''    
