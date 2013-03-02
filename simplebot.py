@@ -289,7 +289,7 @@ def add_playlist(c):
     """
     Adds a radd.it playlist to an existing comment.
     """
-    playlist = "http://radd.it/comments/{0}/_/{1}".format(c.link_id[3:], c.id)
+    playlist = "http://radd.it/comments/{0}/_/{1}?start=1".format(c.link_id[3:], c.id)
     text = c.body + "\n* [Playlist of videos in this comment]({0})".format(playlist)
     c.edit(text)
     
