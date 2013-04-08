@@ -13,25 +13,34 @@ from collections import deque
 import time
 from ConfigParser import ConfigParser
 
-cfg = ConfigParser()
+LASTUPDATED = time.time()
 
-cfg.read('vlb_config.ini')
-username = cfg.get('LoginCredentials','username')
-password = cfg.get('LoginCredentials','password')
-
-with open(cfg.get('blacklist','filename'),'r') as f:
-    blacklist = f.read().split()
-
-
-if not s.r.user:
-    s.login(username, password)
+def update_hot_comments(upd_interval):
+    """
+    Revisit bot's "Hot" comments every <interval> minutes.
+    This should really be handled by a separate thread, but this works ok.
+    
+    PARAMETERS
+    
+    upd_interval (int): minutes between updates.
+    """
+    global LASTUPDATED
+    now = time.time()
+    if now - LASTUPDATED > upd_interval*60:
+        print "\n\n\n~~Updating comments, sorted by Hot"
+        print "Last updated %s" % time.strftime('%X', time.localtime(LASTUPDATED) )
+        hot = s.r.user.get_comments(sort='hot', time='day')
+        scrape(hot, skip_bot=False)
+        LASTUPDATED = time.time()
+        elapsed = LASTUPDATED - now
+        print "\n\nFinished updating bot comments."
+        print "%d minutes elapsed.\n\n" % int(elapsed/60)
 
 n=0
-memo = deque(maxlen=200) #could probably even be shorter, but I'm ok with it.
-while True:
-    print "Top of loop"
-    all = s.r.get_all_comments(limit = None, url_data = {'limit':100})
-    for c in all:        
+memo = deque(maxlen=200) #could probably even be shorter, but I'm ok with it.    
+def scrape(comments, skip_bot = True):   
+    global n 
+    for c in comments:        
         if c.id in memo:
             time.sleep(10)
             break
@@ -39,8 +48,11 @@ while True:
             n+=1
             memo.append(c.id)
             try:
-                if c.author.name == s.r.user.name: # skip our own comments.
-                    continue
+                if c.author.name == s.r.user.name: 
+                    if skip_bot: # skip our own comments.
+                        continue
+                    elif c.score<1: # If updating hot comments, exit when we hit a negative scored comment.
+                        return
             except:
                 continue
             sub = c.subreddit.display_name
@@ -69,3 +81,24 @@ while True:
             #print n, len(memo)
             if n%100 == 0:
                 print n, len(s.botCommentsMemo)
+
+cfg = ConfigParser()
+
+cfg.read('vlb_config.ini')
+username = cfg.get('LoginCredentials','username')
+password = cfg.get('LoginCredentials','password')
+
+with open(cfg.get('blacklist','filename'),'r') as f:
+    blacklist = f.read().split()
+
+
+if not s.r.user:
+    s.login(username, password)
+
+
+while True:
+    print "Top of loop"
+    update_hot_comments(60)
+    all = s.r.get_all_comments(limit = None, url_data = {'limit':100})
+    scrape(all)
+    
