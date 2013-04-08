@@ -255,10 +255,19 @@ def post_comment(link_id, subm, text):
     try:
         if botCommentsMemo.has_key(link_id):
             bot_comment = botCommentsMemo[link_id]
+            print "editing", bot_comment.id
             bot_comment.edit(text)
+            # need to overwrite existing comment object, otherwise we'll add playlist
+            # using the pre-scrape text.
+            #botCommentsMemo[link_id] = bot_comment  # this doesn't do anything.
+            # Manually overwrite 'body' attribute.
+            bot_comment.body = text
+            print "successfully comment."
         else:
+            print "Posting new comment"
             bot_comment = subm.add_comment(text)
             botCommentsMemo[link_id] = bot_comment
+            print "Successfully posted new comment."
         result = True
         print bot_comment.id
     except APIException, e:
