@@ -60,7 +60,8 @@ def scrape(comments, skip_bot = True, upd_comment_thresh_score =2):
                 continue
             links = s.get_video_links_from_html(c.body_html)
             #if len( links )>0:
-            for link in links:
+            #for link in links:  #NO WONDER WE KEEP SCRAPING THE SAME SUBMISSIONS OVER AND OVER!!!
+            if links:
                 try:
                     print u'\nScraping "{sub}" found a link-comment by {auth} on "{post}"'.\
                         format(sub=c.subreddit.display_name
