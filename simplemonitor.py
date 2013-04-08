@@ -38,7 +38,7 @@ def update_hot_comments(upd_interval):
 
 n=0
 memo = deque(maxlen=200) #could probably even be shorter, but I'm ok with it.    
-def scrape(comments, skip_bot = True):   
+def scrape(comments, skip_bot = True, upd_comment_thresh_score =2):   
     global n 
     for c in comments:        
         if c.id in memo:
@@ -51,7 +51,7 @@ def scrape(comments, skip_bot = True):
                 if c.author.name == s.r.user.name: 
                     if skip_bot: # skip our own comments.
                         continue
-                    elif c.score<1: # If updating hot comments, exit when we hit a negative scored comment.
+                    elif c.score < upd_comment_thresh_score: # If updating hot comments, exit when we hit a comment with score < threshhold.
                         return
             except:
                 continue
