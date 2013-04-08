@@ -11,9 +11,20 @@ pretty readable to me.
 import simplebot as s
 from collections import deque  
 import time
+from ConfigParser import ConfigParser
+
+cfg = ConfigParser()
+
+cfg.read('vlb_config.ini')
+username = cfg.get('LoginCredentials','username')
+password = cfg.get('LoginCredentials','password')
+
+with open(cfg.get('blacklist','filename'),'r') as f:
+    blacklist = f.read().split()
+
 
 if not s.r.user:
-    s.login()
+    s.login(username, password)
 
 n=0
 memo = deque(maxlen=200) #could probably even be shorter, but I'm ok with it.
@@ -33,6 +44,8 @@ while True:
             except:
                 continue
             sub = c.subreddit.display_name
+            if sub in blacklist:
+                continue
             links = s.get_video_links_from_html(c.body_html)
             #if len( links )>0:
             for link in links:

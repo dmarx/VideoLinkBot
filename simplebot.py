@@ -33,7 +33,7 @@ botCommentsMemo = {}
 scrapedCommentsMemo = {}
 scrapedLinksMemo = {}
 
-def login(fname='loginCredentials.txt', _user=None, _pass=None):
+def login(_user=None, _pass=None, fname='loginCredentials.txt'):
     if _user is None and _pass is None:
         with open(fname,'r') as f:
             _user = f.readline().strip()
