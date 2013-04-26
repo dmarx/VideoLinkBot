@@ -64,13 +64,13 @@ def scrape(comments, skip_bot = True, upd_comment_thresh_score =2):
             #for link in links:  #NO WONDER WE KEEP SCRAPING THE SAME SUBMISSIONS OVER AND OVER!!!
             if links:
                 try:
-                    print u'\nScraping "{sub}" found a link-comment by {auth} on "{post}"'.\
+                    print u'\n{sub} | {auth} | {post}'.\
                         format(sub=c.subreddit.display_name
                               ,auth=c.author
                               ,post=c.submission.title)
                 except:
                     # Even accounting for unicode, still getting some funkiness.
-                    print u'\n\n\nScraping "{sub}" found a link-comment by {auth} on "{post}"'.\
+                    print u'\n\n\n{sub} | {auth} | {post}'.\
                         format(sub=c.subreddit.id
                               ,auth=c.author.id
                               ,post=c.submission.id)

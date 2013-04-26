@@ -71,18 +71,13 @@ def get_title(url, default = None):
     returns the title of a webpage given a url
     (e.g. the title of a youtube video)
     """
-    #default = '...?...'    
     def _get_title(_url):
         request  = Request(_url)
-        print "openning video url"
         response = urlopen(request)
-        print "reading response"
         data     = response.read()
-        print "souping response"
         soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
         title = soup.title.string[:-10] # strip out " - YouTube"
         title = re.sub('[\|\*\[\]\(\)~]','',title)
-        print "extracted title"
         return title
     try:
         title = _get_title(url)
@@ -113,23 +108,14 @@ def scrape(submission):
         submission = r.get_submission(submission_id = submission)
     # for updating links and whatever.
     if scrapedLinksMemo.has_key(submission.id):
-        print "We've scraped this post before. Getting our comment to update."
         collected_links = scrapedLinksMemo[submission.id]
-        #scrapedCommentIDs = get_scraped_comments(submission.id) # ignore comments we've already scraped for speed. Doubt it will add much. Right now, I'm doing this wrong.
         scrapedCommentIDs = scrapedCommentsMemo[submission.id]
         print "We have already collected %d video links on this submission." % len(collected_links)
     else:
-        print "This post has not been scraped (recently)."
-        #collected_links   = {}
         scrapedCommentIDs = set()
-        #scrapedLinksMemo[submission.id]    = collected_links
         scrapedCommentsMemo[submission.id] = scrapedCommentIDs 
     print "got %d comments" % len(submission.all_comments_flat)
     for i, comment in enumerate(submission.all_comments_flat):
-        #if i%10 == 0:
-        #    print "Scraped %d comments." % i
-        #if comment.id in scrapedCommentIDs:
-        #    continue
         try:
             if comment.author.name == r.user.name: # deleted comment handling doesn't seem to be working properly.
                 # if we have already memoized a bot comment for this post, continue
@@ -139,7 +125,6 @@ def scrape(submission):
                     continue
                 elif get_video_links_from_html(comment.body_html):
                     botCommentsMemo[submission.id] = comment
-                    print "recognized bot comment"
             else:
                 links = get_video_links_from_html(comment.body_html)
                 for link in links:
@@ -209,25 +194,16 @@ def build_comment(collected_links, link_id=None):
 |:-------|:-------|:-------|\n'''    
     
     tail ="""\n* [VideoLinkBot FAQ](http://www.reddit.com/r/VideoLinkBot/wiki/faq)
-* [Feedback](http://www.reddit.com/r/VideoLinkBot/submit)"""
-    
-    #video_urls = [k for k in collected_links]
-    #authors = [collected_links[url]['author'] for url in video_urls]
-    #permalinks = [collected_links[url]['permalink'] for url in video_urls]    
+* [Feedback](http://www.reddit.com/r/VideoLinkBot/submit)"""      
     
     titles = []
     print "Getting video titles"
     if link_id: # if we've been provided with a link_id, memoize the link titles.
-        #for url in video_urls:
         for url in collected_links.index:
-            print url
             try:
-                #if not scrapedLinksMemo[link_id][url].has_key('title'):
                 if not scrapedLinksMemo[link_id].ix[url,'title']:
-                    print "getting video title for", url
                     scrapedLinksMemo[link_id].ix[url,'title'] = get_title(url)
                     print "got title for",url                
-                #titles.append( scrapedLinksMemo[link_id][url]['title'] )
             except Exception, e:
                 print "some problem getting title for", url
                 print e
@@ -248,8 +224,7 @@ def build_comment(collected_links, link_id=None):
                  ,url = _url
                  ,score= c['score']
                  )
-    
-    
+        
     len_playlist = 82 # I think...
     print "Trimming content as needed"
     text = trim_comment(text, 10000-len(head)-len(tail)-len_playlist)    
@@ -264,10 +239,9 @@ def post_comment(link_id, subm, text):
             bot_comment.edit(text)
             # need to overwrite existing comment object, otherwise we'll add playlist
             # using the pre-scrape text.
-            #botCommentsMemo[link_id] = bot_comment  # this doesn't do anything.
             # Manually overwrite 'body' attribute.
             bot_comment.body = text
-            print "successfully comment."
+            print "successfully updated comment."
         else:
             print "Posting new comment"
             bot_comment = subm.add_comment(text)
@@ -282,7 +256,6 @@ def post_comment(link_id, subm, text):
         print "sleeping for 5 seconds, trimming comment"
         time.sleep(5)       # maybe the API is annoyed with
         trim_comment(text)  # maybe the comment is too long (this should have been handled already)
-        #post_comment(link_id, subm, text)
         result = False 
     return result
     
@@ -305,8 +278,7 @@ def add_playlist(c):
     """
     playlist = "http://radd.it/comments/{0}/_/{1}?only=videos&start=1".format(c.link_id[3:], c.id)
     text = c.body + "\n* [Playlist of videos in this comment]({0})".format(playlist)
-    c.edit(text)
-    
+    c.edit(text)    
     
 def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comments = 8, min_num_links=5):   
     """Not sure which function to call? You probably want this one."""    
@@ -319,11 +291,8 @@ def post_aggregate_links(link_id='178ki0', max_num_comments = 1000, min_num_comm
     except:
         print u'Scraping "{0}"'.format(subm.id)
     links = scrape(subm) # Theoretically, we could just pull this down from the memo.    
-    #if text[-5:] == '----|':
-    #    print 'No links to post'    
     n_links = len(links)
     if  n_links >= min_num_links:
-        #authors = set([links[url]['author'] for url in links])
         authors = links.author.unique()
         if len(authors) >1:
             try:
