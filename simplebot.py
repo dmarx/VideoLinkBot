@@ -20,7 +20,8 @@ import urlparse as up
 from urllib2 import Request, urlopen
 import time
 import pandas as pd
-from video_host_utilities import youtube_link_cleaner, supported_domains, link_cleaners
+from video_host_utilities import youtube_link_cleaner, supported_domains, \
+                                 link_cleaners, title_cleaners, get_host_code
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -52,17 +53,22 @@ def get_video_links_from_html(text):
     links = link_pat.findall(text)
     video_links = []
     for l in links:
-        parsed = up.urlparse(l)
-        #parsed.netloc.lower() #not really necessary
-        for elem in parsed.netloc.split('.'):
-            try:
-                host  = supported_domains[elem]
-                clean = link_cleaners[host]
-                if clean:
-                    video_links.append(clean(l))
-                break
-            except:
-                continue
+        code = get_host_code(l)
+        if code:
+            clean = link_cleaners[code]
+            if clean:
+                video_links.append(clean(l))
+        #parsed = up.urlparse(l)
+        ###parsed.netloc.lower() #not really necessary
+        #for elem in parsed.netloc.split('.'):
+        #    try:
+        #        host  = supported_domains[elem]
+        #        clean = link_cleaners[host]
+        #        if clean:
+        #            video_links.append(clean(l))
+        #        break
+        #    except:
+        #        continue
                 
     return video_links
 
@@ -76,7 +82,9 @@ def get_title(url, default = None):
         response = urlopen(request)
         data     = response.read()
         soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-        title = soup.title.string[:-10] # strip out " - YouTube"
+        #title = soup.title.string[:-10] # strip out " - YouTube"
+        code = get_host_code(_url)
+        title = title_cleaners[code](soup)
         title = re.sub('[\|\*\[\]\(\)~]','',title)
         return title
     try:

@@ -1,6 +1,23 @@
 import urlparse as up
 import re
 
+# netloc:VLB_domain_code
+# Codes: yt=youtube
+supported_domains = {'youtube':'yt','youtu':'yt', 'liveleak':'lk'}
+
+def get_host_code(url):
+    code = None
+    parsed = up.urlparse(url)
+    for elem in parsed.netloc.split('.'):
+        try:
+            code = supported_domains[elem]
+        except:
+            continue
+    return code
+
+
+##############################################################
+
 # compile regexs outside link cleaning functions to ensure it is only compiled
 # once to make sure regexp compilation doesn't detract from performance
 yt_video_id_pat = re.compile('v=([A-Za-z0-9_-]+)')
@@ -8,6 +25,7 @@ yt_video_id_pat = re.compile('v=([A-Za-z0-9_-]+)')
 def youtube_link_cleaner(link):
     parsed = up.urlparse(link)
     short_link = None
+    video_id = None
     if parsed.netloc == 'www.youtube.com' or parsed.netloc == 'm.youtube.com':
         match = re.search(yt_video_id_pat, link)
         if match:
@@ -19,9 +37,23 @@ def youtube_link_cleaner(link):
     if video_id:
         short_link = 'http://youtu.be/' + video_id
     return short_link
-#    return 'http://youtu.be/' + video_id
 
-# netloc:VLB_domain_code
-# Codes: yt=youtube
-supported_domains = {'youtube':'yt','youtu':'yt'} #,'ytimg':'yt'} 
-link_cleaners     = {'yt':youtube_link_cleaner}  
+def youtube_title_cleaner(soup):
+    return soup.title.string[:-10]
+    
+#################################################################
+
+def liveleak_link_cleaner(link):
+    parsed = up.urlparse(link)
+    clean = None
+    if up.urlparse(link).path == '/view':
+        clean = link
+    return clean
+
+def liveleak_title_cleaner(soup):
+    return soup.title.string[15:]
+
+# This dict will be used to call the appropriate pre-processing 
+# function in simplebot.get_video_links_from_html
+link_cleaners     = {'yt':youtube_link_cleaner, 'lk':liveleak_link_cleaner} 
+title_cleaners = {'yt':youtube_title_cleaner, 'lk':liveleak_title_cleaner}
