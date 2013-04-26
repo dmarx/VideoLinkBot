@@ -12,11 +12,12 @@ def youtube_link_cleaner(link):
         match = re.search(yt_video_id_pat, link)
         if match:
             video_id = match.group()[2:]
-            short_link = 'http://youtu.be/' + video_id
     elif parsed.netloc == 'youtu.be':
-        video_id = parsed.path[1:] # I feel like maybe I should split on '/' and then take item 0 instead
+        video_id = parsed.path[1:] # I feel like maybe I should split on '/' and then take item 0 instead        
+    elif parsed.netloc == 'youtube.googleapis.com':
+        video_id = parsed.path[3:]
+    if video_id:
         short_link = 'http://youtu.be/' + video_id
-    
     return short_link
 #    return 'http://youtu.be/' + video_id
 
