@@ -20,6 +20,7 @@ import urlparse as up
 from urllib2 import Request, urlopen
 import time
 import pandas as pd
+from video_host_utilities import youtube_link_cleaner, supported_domains, link_cleaners
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -48,18 +49,22 @@ def get_video_links_from_html(text):
     """
     # could also just use BeautifulSoup, but this regex works fine
     link_pat   = re.compile('href="(.*?)"') 
-    #pat_domain = re.compile('http://([^/]*?)/')
-    #links
     links = link_pat.findall(text)
-    yt_links = []
+    video_links = []
     for l in links:
         parsed = up.urlparse(l)
         #parsed.netloc.lower() #not really necessary
         for elem in parsed.netloc.split('.'):
-            if elem in ('youtube','youtu','ytimg'):
-                yt_links.append(l)
+            try:
+                host  = supported_domains[elem]
+                clean = link_cleaners[host]
+                if clean:
+                    video_links.append(clean(l))
                 break
-    return yt_links
+            except:
+                continue
+                
+    return video_links
 
 def get_title(url, default = None):
     """
