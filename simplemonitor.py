@@ -12,6 +12,7 @@ import simplebot as s
 from collections import deque  
 import time
 from ConfigParser import ConfigParser
+from urllib2 import HTTPError, URLError
 
 LASTUPDATED = time.time()
 
@@ -99,7 +100,12 @@ if not s.r.user:
 
 while True:
     print "Top of loop"
-    update_hot_comments(60)
-    all = s.r.get_all_comments(limit = None, url_data = {'limit':100})
-    scrape(all)
-    
+    try:
+        update_hot_comments(60)
+        all = s.r.get_all_comments(limit = None, url_data = {'limit':100})
+        scrape(all)
+    except (HTTPError, URLError) as e:
+        wait_time = 300
+        print e
+        print "sleeping ", wait_time
+        time.sleep(wait_time) # wait 5min after, resume scrape
