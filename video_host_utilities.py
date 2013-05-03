@@ -33,7 +33,10 @@ def youtube_link_cleaner(link):
     elif parsed.netloc == 'youtu.be':
         video_id = parsed.path[1:] # I feel like maybe I should split on '/' and then take item 0 instead        
     elif parsed.netloc == 'youtube.googleapis.com':
-        video_id = parsed.path[3:]
+        try:
+            video_id = parsed.path[3:]
+        except:
+            pass
     if video_id:
         short_link = 'http://youtu.be/' + video_id
     return short_link
