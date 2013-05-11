@@ -57,7 +57,9 @@ def get_video_links_from_html(text):
         if code:
             clean = link_cleaners[code]
             if clean:
-                video_links.append(clean(l))
+                link = clean(l)
+                if link:
+                    video_links.append(link)
         #parsed = up.urlparse(l)
         ###parsed.netloc.lower() #not really necessary
         #for elem in parsed.netloc.split('.'):
