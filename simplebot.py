@@ -17,16 +17,11 @@ import praw
 from praw.errors import APIException
 import re
 import urlparse as up
-from urllib2 import Request, urlopen
+import lxml.html
 import time
 import pandas as pd
 from video_host_utilities import youtube_link_cleaner, supported_domains, \
                                  link_cleaners, title_cleaners, get_host_code
-
-try:
-    from BeautifulSoup import BeautifulSoup
-except:
-    from bs4 import BeautifulSoup
 
 _ua = "YoutubeLinkBot reddit bot by /u/shaggorama"
 r = praw.Reddit(_ua)
@@ -59,19 +54,7 @@ def get_video_links_from_html(text):
             if clean:
                 link = clean(l)
                 if link:
-                    video_links.append(link)
-        #parsed = up.urlparse(l)
-        ###parsed.netloc.lower() #not really necessary
-        #for elem in parsed.netloc.split('.'):
-        #    try:
-        #        host  = supported_domains[elem]
-        #        clean = link_cleaners[host]
-        #        if clean:
-        #            video_links.append(clean(l))
-        #        break
-        #    except:
-        #        continue
-                
+                    video_links.append(link)                
     return video_links
 
 def get_title(url, default = None):
@@ -80,13 +63,10 @@ def get_title(url, default = None):
     (e.g. the title of a youtube video)
     """
     def _get_title(_url):
-        request  = Request(_url)
-        response = urlopen(request)
-        data     = response.read()
-        soup = BeautifulSoup(data, convertEntities=BeautifulSoup.HTML_ENTITIES)
-        #title = soup.title.string[:-10] # strip out " - YouTube"
+        t = lxml.html.parse(_url)
+        title_text = t.find(".//title").text        
         code = get_host_code(_url)
-        title = title_cleaners[code](soup)
+        title = title_cleaners[code](title_text)
         title = re.sub('[\|\*\[\]\(\)~]','',title)
         return title
     try:

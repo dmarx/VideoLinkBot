@@ -3,7 +3,7 @@ import re
 
 # netloc:VLB_domain_code
 # Codes: yt=youtube
-supported_domains = {'youtube':'yt','youtu':'yt', 'liveleak':'lk'}
+supported_domains = {'youtube':'yt','youtu':'yt', 'liveleak':'lk', 'vimeo':'vm'}
 
 def get_host_code(url):
     code = None
@@ -41,8 +41,8 @@ def youtube_link_cleaner(link):
         short_link = 'http://youtu.be/' + video_id
     return short_link
 
-def youtube_title_cleaner(soup):
-    return soup.title.string[:-10]
+def youtube_title_cleaner(title):
+    return title[:-10]
     
 #################################################################
 
@@ -53,10 +53,29 @@ def liveleak_link_cleaner(link):
         clean = link
     return clean
 
-def liveleak_title_cleaner(soup):
-    return soup.title.string[15:]
+def liveleak_title_cleaner(title):
+    return title[15:]
+
+#################################################################
+
+vimeo_video_pat = re.compile('.*vimeo\.com/[0-9]+')
+
+def vimeo_link_cleaner(link):
+    clean = None
+    video_url = re.findall(vimeo_video_pat, link)
+    if video_url:
+        clean =  video_url[0]
+    return clean
+
+def vimeo_title_cleaner(title):
+    return title[:-9]
+
+#################################################################
+    
+def default_title(title):
+    return title
 
 # This dict will be used to call the appropriate pre-processing 
 # function in simplebot.get_video_links_from_html
-link_cleaners     = {'yt':youtube_link_cleaner, 'lk':liveleak_link_cleaner} 
-title_cleaners = {'yt':youtube_title_cleaner, 'lk':liveleak_title_cleaner}
+link_cleaners     = {'yt':youtube_link_cleaner, 'lk':liveleak_link_cleaner, 'vm':vimeo_link_cleaner} 
+title_cleaners = {'yt':youtube_title_cleaner, 'lk':liveleak_title_cleaner, 'vm': vimeo_title_cleaner}
