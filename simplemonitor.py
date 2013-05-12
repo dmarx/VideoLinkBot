@@ -38,14 +38,19 @@ def update_hot_comments(upd_interval):
         print "%d minutes elapsed.\n\n" % int(elapsed/60)
 
 n=0
+BACKOFF_id_in_memo = 1
 memo = deque(maxlen=200) #could probably even be shorter, but I'm ok with it.    
 def scrape(comments, skip_bot = True, upd_comment_thresh_score =2):   
-    global n 
+    global n
+    global BACKOFF_id_in_memo 
     for c in comments:        
         if c.id in memo:
-            time.sleep(10)
+            BACKOFF_id_in_memo *= 2
+            print "Backing off for", BACKOFF_id_in_memo
+            time.sleep(BACKOFF_id_in_memo)
             break
         else:
+            BACKOFF_id_in_memo=1
             n+=1
             memo.append(c.id)
             try:
