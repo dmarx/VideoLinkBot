@@ -18,6 +18,7 @@ from praw.errors import APIException
 import re
 import urlparse as up
 import lxml.html
+from HTMLParser import HTMLParser
 import time
 import pandas as pd
 from video_host_utilities import youtube_link_cleaner, supported_domains, \
@@ -38,6 +39,9 @@ def login(_user=None, _pass=None, fname='loginCredentials.txt'):
     print "Logging in as: {0} / {1}".format(_user, _pass)
     r.login(username=_user, password=_pass)
 
+def fix_html_entities(html, parser=HTMLParser()):
+    return parser.unescape( parser.unescape(html))
+
 def get_video_links_from_html(text):
     """
     Strips video link from a string in html format
@@ -52,7 +56,7 @@ def get_video_links_from_html(text):
         if code:
             clean = link_cleaners[code]
             if clean:
-                link = clean(l)
+                link = clean(fix_html_entities(l))
                 if link:
                     video_links.append(link)                
     return video_links

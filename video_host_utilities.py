@@ -1,10 +1,6 @@
 import urlparse as up
 import re
 
-# netloc:VLB_domain_code
-# Codes: yt=youtube
-supported_domains = {'youtube':'yt','youtu':'yt', 'liveleak':'lk', 'vimeo':'vm'}
-
 def get_host_code(url):
     code = None
     parsed = up.urlparse(url)
@@ -71,11 +67,36 @@ def vimeo_title_cleaner(title):
     return title[:-9]
 
 #################################################################
+
+def ytd_title_cleaner(title):
+    #if len(title) < 49
+    #return title[:-49]
+    return title
+
+#################################################################
+
+def default_link(link):
+    return link
     
 def default_title(title):
     return title
 
-# This dict will be used to call the appropriate pre-processing 
-# function in simplebot.get_video_links_from_html
-link_cleaners     = {'yt':youtube_link_cleaner, 'lk':liveleak_link_cleaner, 'vm':vimeo_link_cleaner} 
-title_cleaners = {'yt':youtube_title_cleaner, 'lk':liveleak_title_cleaner, 'vm': vimeo_title_cleaner}
+link_cleaners     = {'yt':youtube_link_cleaner
+                    ,'lk':liveleak_link_cleaner
+                    ,'vm':vimeo_link_cleaner
+                    ,'ytd':default_link
+                    } 
+title_cleaners = {'yt':youtube_title_cleaner
+                 ,'lk':liveleak_title_cleaner
+                 ,'vm':vimeo_title_cleaner
+                 ,'ytd':ytd_title_cleaner
+                 }
+
+# netloc.split('.'):VLB_domain_code
+supported_domains = {'youtube':'yt'
+                    ,'youtu':'yt'
+                    ,'liveleak':'lk'
+                    ,'vimeo':'vm'
+                    ,'youtubedoubler':'ytd'
+                    }
+
