@@ -71,7 +71,7 @@ def vimeo_title_cleaner(title):
 def ytd_title_cleaner(title):
     #if len(title) < 49
     #return title[:-49]
-    return title
+    return title.split(' by VJ')[0]
 
 #################################################################
 
