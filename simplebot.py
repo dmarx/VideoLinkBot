@@ -71,7 +71,7 @@ def get_title(url, default = None, hparser=etree.HTMLParser(encoding='utf-8')):
         raw_title = htree.find(".//title").text        
         code = get_host_code(_url)
         title = title_cleaners[code](raw_title)
-        title = re.sub('[\|\*\[\]\(\)~]','',title)
+        title = re.sub('[\|\*\[\]\(\)~\\\]','',title)
         return title
     try:
         title = _get_title(url)
