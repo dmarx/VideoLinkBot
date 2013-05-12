@@ -19,6 +19,7 @@ import re
 import urlparse as up
 from HTMLParser import HTMLParser
 from lxml import etree
+from urllib2 import Request, urlopen
 import time
 import pandas as pd
 from video_host_utilities import youtube_link_cleaner, supported_domains, \
@@ -66,9 +67,13 @@ def get_title(url, default = None, hparser=etree.HTMLParser(encoding='utf-8')):
     returns the title of a webpage given a url
     (e.g. the title of a youtube video)
     """
-    def _get_title(_url):            
-        htree=etree.parse(url, hparser)
+    def _get_title(_url):  
+        HEADER = {'Accept-Language':'en-US,en;q=0.5'}
+        request = Request(_url, headers=HEADER)
+        data = urlopen(request)
+        htree=etree.parse(data, hparser)
         raw_title = htree.find(".//title").text        
+          
         code = get_host_code(_url)
         title = title_cleaners[code](raw_title)
         title = re.sub('[\|\*\[\]\(\)~\\\]','',title)
