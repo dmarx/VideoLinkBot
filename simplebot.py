@@ -17,8 +17,8 @@ import praw
 from praw.errors import APIException
 import re
 import urlparse as up
-import lxml.html
 from HTMLParser import HTMLParser
+from lxml import etree
 import time
 import pandas as pd
 from video_host_utilities import youtube_link_cleaner, supported_domains, \
@@ -61,16 +61,16 @@ def get_video_links_from_html(text):
                     video_links.append(link)                
     return video_links
 
-def get_title(url, default = None):
+def get_title(url, default = None, hparser=etree.HTMLParser(encoding='utf-8')):
     """
     returns the title of a webpage given a url
     (e.g. the title of a youtube video)
     """
-    def _get_title(_url):
-        t = lxml.html.parse(_url)
-        title_text = t.find(".//title").text        
+    def _get_title(_url):            
+        htree=etree.parse(url, hparser)
+        raw_title = htree.find(".//title").text        
         code = get_host_code(_url)
-        title = title_cleaners[code](title_text)
+        title = title_cleaners[code](raw_title)
         title = re.sub('[\|\*\[\]\(\)~]','',title)
         return title
     try:
